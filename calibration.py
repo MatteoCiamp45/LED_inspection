@@ -7,6 +7,10 @@
 # cd Desktop/calibration
 # python3 calibration.py
 ##########
+########## N.B.:
+# Necessario inserire file .npy all'interno di una sottocartella "data" nella stessa cartella di questo script.
+# Se esistono 2 file .npy i nomi standard sono: "LEDs_OFF.npy" (foto LED spenti), "LEDs_ON.npy" (foto LED accesi).
+##########
 
 # # CALIBRATION
 

@@ -1,6 +1,18 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+########## USAGE:
+# cd
+# source venv_jupyter/bin/activate
+# cd Desktop/calibration
+# python3 testing.py
+##########
+########## N.B.:
+# Necessario inserire file .npy all'interno di una sottocartella "test" nella stessa cartella di questo script.
+# Necessario aver già eseguito il file "calibration.py" per generare i file di calibrazione.
+# Necessario inserire file "reference_mask.png" e "calib_data.txt" nella stessa cartella di questo script.
+##########
+
 # # TESTING
 
 # #### 1 Importing libraries
