@@ -7,6 +7,9 @@ import numpy as np
 import cv2 as cv
 from sklearn.cluster import KMeans
 
+
+###################################### CALIBRATION ######################################
+
 # KMeans to separate clusters of img_LEDs and img_no_LEDs photos (to use only if they are in the same .npy file)
 def split_leds(img_list):
     # Calcola le std di tutte le immagini
@@ -97,6 +100,42 @@ def find_and_refine_rois(masked_images, images_filtered_gaussian, MAX_ITERATIONS
     return roi_list_final, binary_masks_final
 
 
+def remap_labels_map(labels_map, mapping):
+    """Sostituisce i vecchi id dei componenti connessi con i nuovi, pixel per pixel."""
+    new_labels_map = np.zeros_like(labels_map)
+    for old_id, new_id in mapping.items():
+        new_labels_map[labels_map == old_id] = new_id
+    return new_labels_map
+
+
+###################################### TESTING ######################################
+
+def find_rois(masked_images, imgs):
+    roi_list = []          # lista di liste: per ogni immagine, la lista delle ROI trovate
+    binary_masks = []      # maschere binarie
+    for i, img in enumerate(masked_images):
+        # Converti in uint8 per connectedComponents
+        img_8bit = cv.normalize(img, None, 0, 255, cv.NORM_MINMAX).astype(np.uint8)
+        # Binarizza (i pixel già mascherati sono 0, gli altri > 0)
+        _, binary = cv.threshold(img_8bit, 1, 255, cv.THRESH_BINARY)
+        binary_masks.append(binary)
+        # Flood fill tramite connectedComponentsWithStats
+        num_labels, labels, stats, centroids = cv.connectedComponentsWithStats(binary, connectivity=8)
+        # Label 0 è il background, le ROI partono da 1
+        num_rois = num_labels - 1
+        print(f"Photo {i} — ROI trovate: {num_rois}")
+        # Salva le ROI (stats escludendo il background)
+        rois = []
+        for label in range(1, num_labels):
+            x, y, w, h, area = stats[label]
+            cx, cy = centroids[label]
+            rois.append({'label': label, 'x': x, 'y': y, 'w': w, 'h': h, 'area': area, 'cx': cx, 'cy': cy})
+        roi_list.append(rois)
+    return roi_list, binary_masks
+
+
+###################################### in common ######################################
+
 # Function to relabel rois to respect the correct functioning order of the LEDs:
 # 
 # 13  9   5  1
@@ -145,11 +184,3 @@ def relabel_rois_grid(roi_list_final, n_rows=4, n_cols=4):
         label_maps.append(mapping)
 
     return new_roi_list, label_maps
-
-
-def remap_labels_map(labels_map, mapping):
-    """Sostituisce i vecchi id dei componenti connessi con i nuovi, pixel per pixel."""
-    new_labels_map = np.zeros_like(labels_map)
-    for old_id, new_id in mapping.items():
-        new_labels_map[labels_map == old_id] = new_id
-    return new_labels_map
